@@ -42,7 +42,7 @@ class Geo():
         tuple
             Tuple of the city data.
         '''
-        params = {'format': 'json', 'limit': '1', 'polygon_geojson': '10', 'city': self.city}
+        params = {'format': 'json', 'limit': '1', 'polygon_geojson': '10', 'state': self.city}
         city = requests.get(self.params.osm_url, params=params)
 
 # Get min and max coordinates
