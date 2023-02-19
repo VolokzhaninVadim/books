@@ -31,6 +31,10 @@ from shapely.geometry import Polygon
 import json
 # For work with sql
 from sqlalchemy import dialects
+# Work with parallelism
+from multiprocessing.dummy import Pool as ThreadPool
+# For work with loop
+from tqdm import tqdm
 
 
 class Scraper():
@@ -211,6 +215,9 @@ class Scraper():
         return (region.json(), polygon_rectangle, min_coordinates, max_coordinates)
 
     def insert_table_polygon(self) -> None:
+        '''
+        Insert data to table_polygon.
+        '''
 
         region_json, polygon_rectangle, min_coordinates, max_coordinates = self.get_region_polygon()
         pd.DataFrame(region_json)['geojson'].apply(json.dumps).to_sql(
@@ -221,3 +228,31 @@ class Scraper():
             index=False,
             dtype={"polygon":dialects.postgresql.JSONB}
         )
+
+    # def mass_insert_table_address(self, multiplicity_number: int=25) -> None:
+    #     '''
+    #     Mass insert data to table_address.
+
+    #     Parameters
+    #     ----------
+    #     multiplicity_number : int, optional
+    #         Multiplicity number for generate bypass dict and
+    #         set thread count, by default 25
+    #     '''
+
+    #     # Get house dataframe.
+    #     df = self.database.get_house_df()
+
+    #     # Get bypass dataframe
+    #     bypass_dict = self.database.get_bypass_dict(
+    #         last_number=df.shape[0],
+    #         multiplicity_number=multiplicity_number
+    #     )
+
+    #     # Get data
+    #     with ThreadPool(multiplicity_number) as p:
+    #         for i in tqdm(bypass_dict.keys()):
+    #             p.map(
+    #                 self.insert_table_address,
+    #                 df[bypass_dict[i][0]:bypass_dict[i][1]]['address']
+    #             )

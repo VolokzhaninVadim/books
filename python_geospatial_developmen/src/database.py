@@ -14,10 +14,11 @@ from typing import Union, List
 # Fro work with data frame
 from pandas import DataFrame
 
+metadata = MetaData(schema='geo')
 
 table_house = Table(
     'house',
-    MetaData(schema='geo'),
+    metadata,
     Column(
         'houseguid',
         Text,
@@ -40,7 +41,7 @@ table_house = Table(
 
 table_address = Table(
     'address',
-    MetaData(schema='geo'),
+    metadata,
     Column(
         'address',
         Text,
@@ -64,7 +65,7 @@ table_address = Table(
 
 table_polygon = Table(
     'polygon',
-    MetaData(schema='geo'),
+    metadata,
     Column(
         'polygon',
         JSON,
@@ -130,7 +131,17 @@ class Database():
         DataFrame
             Result dataframe.
         '''
-        query = select(['*']).select_from(table_house)
+        query = select([
+            table_house.c.houseguid,
+            table_house.c.address,
+            table_house.c.living_rooms_amount,
+        ]).join(
+            table_address,
+            table_house.c.address == table_address.c.address,
+            isouter=True
+        ).where(
+            table_address.c.longitude == None
+        )
         columns, rows = self.execute(query, return_result=True)
         df = DataFrame(rows, columns=columns)
         return df
@@ -148,41 +159,41 @@ class Database():
         stmt = table_address.insert(values)
         self.execute(stmt)
 
-    def get_bypass_dict(
-        self,
-        first_number: int = 0,
-        last_number: int = 152,
-        multiplicity_number: int = 25
-       ) -> dict:
-        '''
-        Generate bypass data.
+    # def get_bypass_dict(
+    #     self,
+    #     first_number: int = 0,
+    #     last_number: int = 152,
+    #     multiplicity_number: int = 25
+    #    ) -> dict:
+    #     '''
+    #     Generate bypass data.
 
-        Parameters
-        ----------
-        first_number : int, optional
-        First number, by default 0
-        last_number : int, optional
-        Last number, by default 152
-        multiplicity_number : int, optional
-        Multiple number, by default 25
+    #     Parameters
+    #     ----------
+    #     first_number : int, optional
+    #     First number, by default 0
+    #     last_number : int, optional
+    #     Last number, by default 152
+    #     multiplicity_number : int, optional
+    #     Multiple number, by default 25
 
-        Returns
-            -------
-            dict
-                Bypass data.
-        '''
-        # Generate data for bypass
-        start_numbers = []
-        [start_numbers.append(i) for i in range(first_number, last_number, multiplicity_number)]
-        last_numbers = []
-        [last_numbers.append(i) for i in range(
-                multiplicity_number, last_number + multiplicity_number,
-                multiplicity_number)]
-        # Change last value
-        last_numbers[len(last_numbers) - 1] = last_number
+    #     Returns
+    #         -------
+    #         dict
+    #             Bypass data.
+    #     '''
+    #     # Generate data for bypass
+    #     start_numbers = []
+    #     [start_numbers.append(i) for i in range(first_number, last_number, multiplicity_number)]
+    #     last_numbers = []
+    #     [last_numbers.append(i) for i in range(
+    #             multiplicity_number, last_number + multiplicity_number,
+    #             multiplicity_number)]
+    #     # Change last value
+    #     last_numbers[len(last_numbers) - 1] = last_number
 
-        # Generate keys
-        keys = [i for i in range(len(last_numbers))]
-        bypass_dict = {k: [start_numbers[k], last_numbers[k]] for k in keys}
-        # Shuffle data
-        return bypass_dict
+    #     # Generate keys
+    #     keys = [i for i in range(len(last_numbers))]
+    #     bypass_dict = {k: [start_numbers[k], last_numbers[k]] for k in keys}
+    #     # Shuffle data
+    #     return bypass_dict
