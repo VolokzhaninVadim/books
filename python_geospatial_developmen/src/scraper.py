@@ -229,6 +229,14 @@ class Scraper():
             dtype={"polygon":dialects.postgresql.JSONB}
         )
 
+    def insert_table_address_from_df(self) -> None:
+        '''
+        Insert to table_address from table_hose.
+        '''
+        df = self.database.get_house_df()
+        for index, row in tqdm(df.iterrows(), total=df.shape[0]):
+            self.insert_table_address(row.get('address'))
+
     # def mass_insert_table_address(self, multiplicity_number: int=25) -> None:
     #     '''
     #     Mass insert data to table_address.
