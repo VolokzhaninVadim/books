@@ -63,7 +63,7 @@ class Scraper():
         patern1 = re.compile(r'/')
         result = patern1.sub('_', raw_text)
         patern2 = re.compile(r'\sк.')
-        return patern2.sub(r' к', result)
+        return 'Россия, Москва, ' + patern2.sub(r' к', result)
 
     def change_session_ip(self) -> Session:
         '''
@@ -158,6 +158,7 @@ class Scraper():
             ).read()
         columns = ['houseguid', 'address', 'living_rooms_amount']
         df = df[columns]
+        df['load_dttm'] = pd.to_datetime('now')
         return df[~df['houseguid'].isna()]
 
     def insert_house_df(self) -> None:
@@ -220,7 +221,9 @@ class Scraper():
         '''
 
         region_json, polygon_rectangle, min_coordinates, max_coordinates = self.get_region_polygon()
-        pd.DataFrame(region_json)['geojson'].apply(json.dumps).to_sql(
+        df = pd.DataFrame(region_json)['geojson'].apply(json.dumps).to_frame(name='geojson')
+        df['load_dttm'] = pd.to_datetime('now')
+        df.to_sql(
             name=table_polygon.name,
             schema=table_polygon.schema,
             con=self.database.engine,
